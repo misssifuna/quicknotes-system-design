@@ -66,3 +66,12 @@ textarea {
 .error {
   color: #b42318;
 }
+
+.delete-btn {
+  background: #b42318;
+  margin-top: 8px;
+}
+
+.delete-btn:hover {
+  background: #8f1c13;
+}

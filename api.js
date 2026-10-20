@@ -19,7 +19,7 @@ async function request(url, options = {}) {
 
   return response.json();
 }
-
+  
 function displayNotes(notes) {
   notesList.replaceChildren();
 
@@ -27,11 +27,19 @@ function displayNotes(notes) {
     const item = document.createElement("li");
     const title = document.createElement("h3");
     const body = document.createElement("p");
+    const deleteButton = document.createElement("button");
 
     title.textContent = note.title;
     body.textContent = note.body;
+    deleteButton.textContent = "Delete";
+    deleteButton.type = "button";
+    deleteButton.className = "delete-btn";
 
-    item.append(title, body);
+    deleteButton.addEventListener("click", () => {
+      deleteNote(note.id, item, deleteButton);
+    });
+
+    item.append(title, body, deleteButton);
     notesList.appendChild(item);
   });
 }
@@ -101,15 +109,24 @@ async function createNote(event) {
         userId: 1
       })
     });
-
+    
     const item = document.createElement("li");
     const heading = document.createElement("h3");
     const paragraph = document.createElement("p");
+    const deleteButton = document.createElement("button");
 
     heading.textContent = newNote.title;
     paragraph.textContent = newNote.body || "";
 
-    item.append(heading, paragraph);
+    deleteButton.textContent = "Delete";
+    deleteButton.type = "button";
+    deleteButton.className = "delete-btn";
+
+    deleteButton.addEventListener("click", () => {
+    deleteNote(newNote.id, item, deleteButton);
+    });
+
+    item.append(heading, paragraph, deleteButton);
     notesList.prepend(item);
 
     statusMessage.textContent =
@@ -128,5 +145,34 @@ async function createNote(event) {
 }
 
 noteForm.addEventListener("submit", createNote);
+
+async function deleteNote(noteId, noteItem, deleteButton) {
+  deleteButton.disabled = true;
+  statusMessage.textContent = "Deleting note...";
+  statusMessage.className = "";
+
+  try {
+    await request(`${API_URL}/${noteId}`, {
+      method: "DELETE"
+    });
+
+    noteItem.remove();
+
+    if (notesList.children.length === 0) {
+      statusMessage.textContent = "No notes remaining.";
+    } else {
+      statusMessage.textContent = `Note ${noteId} deleted successfully.`;
+    }
+
+    statusMessage.className = "success";
+  } catch (error) {
+    statusMessage.textContent =
+      "Unable to delete the note. Please try again.";
+    statusMessage.className = "error";
+    console.error("Error deleting note:", error);
+  } finally {
+    deleteButton.disabled = false;
+  }
+}
 
 loadButton.addEventListener("click", loadNotes);
